@@ -32,21 +32,18 @@ object StudiesQuerys {
   def optionallyFilterByMinExposure(min_exp: Option[Int])(studies: StudyQuery): StudyQuery =
     min_exp match {
       case Some(min_exposure) ⇒ studies.filter(_.exposurePeriodDays >= min_exposure)
-      case None ⇒ studies
+      case None               ⇒ studies
     }
 
   def optionallyFilterByMaxExposure(max_exp: Option[Int])(studies: StudyQuery): StudyQuery =
     max_exp match {
       case Some(max_exposure) ⇒ studies.filter(_.exposurePeriodDays <= max_exposure)
-      case None ⇒ studies
+      case None               ⇒ studies
     }
 
   def getStudies(min_exposure_period: Option[Int] = None, max_exposure_period: Option[Int] = None) = {
     optionallyFilterByMaxExposure(max_exposure_period)(optionallyFilterByMinExposure(min_exposure_period)(Study))
   }
-
-  val getStudiesSubacute = getStudies(Some(20), Some(35))
-  val getStudiesSubchronic = getStudies(Some(81), Some(122))
 
   def Studies_admin_routes = {
     for ((comp, study) <- CompoundQuerys.CompoundsStudies)
@@ -101,7 +98,6 @@ object StudiesQuerys {
 object SynonymQuerys {
   val sqlConnection = Querys_etox_reports.con
 
-
   def synonyms(table: String, col: String) = {
     val qTerms = models.etox_reports.Tables.InputOntoEtoxOntologyTerms
     val qSynonyms = models.etox_reports.Tables.InputOntoVxSynonyms
@@ -111,7 +107,7 @@ object SynonymQuerys {
         && synonym.vxTable === table
         && synonym.vxColumn === col
     ) yield (term, synonym)
-    DataFrame(sqlConnection,q).project(List("VX_VALUE", "TERM_NAME")).renameFields(Map("VX_VALUE" -> "synonym", "TERM_NAME" -> "term"))
+    DataFrame(sqlConnection, q).project(List("VX_VALUE", "TERM_NAME")).renameFields(Map("VX_VALUE" -> "synonym", "TERM_NAME" -> "term"))
   }
 
   def getIdsForSynonyms(synonyms: List[String], table: String, col: String) = {
@@ -150,7 +146,7 @@ object CompoundQuerys {
 
   def CompoundsAll = {
     val q = for (
-      compound <- Compounds if !compound.smiles.isEmpty
+      compound <- Compounds //if !compound.smiles.isEmpty
     ) yield (compound)
     q
   }
@@ -164,8 +160,9 @@ object CompoundQuerys {
   }
 
   def CompoundsStudies = {
+
     val q = for (
-      compound <- Compounds if !compound.smiles.isEmpty;
+      compound <- CompoundsAll;
       study <- Study if study.substId === compound.substId
     ) yield (compound, study)
     q
@@ -179,12 +176,10 @@ object CompoundQuerys {
     ) yield (compound, study)
   }
 
-  def CompoundsStudies_Rodents_Oral_30days = CompoundsStudies_Filter(oral_routes, rodents, Some((22, 32)))
-
   def filterByExposurePeriod(study: Tables.Study, minmax: Option[(Int, Int)]) =
     {
       minmax match {
-        case None => study.exposurePeriodDays === 0 || true
+        case None             => study.exposurePeriodDays === 0 || true
         case Some((min, max)) => study.exposurePeriodDays >= min && study.exposurePeriodDays <= max
       }
     }
@@ -192,14 +187,14 @@ object CompoundQuerys {
   def filterByAdministrationRouteNormalised(study: Tables.Study, admroutes: List[String]) = {
     admroutes match {
       case List() => study.normalisedAdministrationRoute === "aaa" || true
-      case _ => study.normalisedAdministrationRoute inSet admroutes
+      case _      => study.normalisedAdministrationRoute inSet admroutes
     }
   }
 
   def filterBySpecieNormalised(study: Tables.Study, species: List[String]) = {
     species match {
       case List() => study.normalisedSpecies === "aaa" || true
-      case _ => study.normalisedSpecies inSet species
+      case _      => study.normalisedSpecies inSet species
     }
   }
 }

@@ -31,7 +31,11 @@ object Querys_helper {
       {
         case (q, i) =>
           {
+
             val filename = FileUtils.getNewFilename(prefix + "Q_seq" + i, ".html", tmpPathQuerys)
+            println("---------------------")
+            println(filename)
+            println("---------------------")
             val fos = new PrintStream(filename)
             fos.println(Querys_helper.prettyprintSQL(q, true))
             fos.close()
@@ -79,41 +83,6 @@ object Querys_helper {
 
   }
 
-//  def doQuerySQL2SDF(sqlConnection: java.sql.Connection, query: String, out: PrintStream) = {
-//
-//    def doQuerySQL2TextSDF(rs: ResultSet, out: PrintStream) = {
-//      var rsmetadata = rs.getMetaData()
-//      var strSDF = ""
-//      for (column <- Range(1, rsmetadata.getColumnCount() + 1)) {
-//        val col = rsmetadata.getColumnLabel(column)
-//        if (!(excluded_fields contains col)) {
-//          strSDF = strSDF + ">  <" + rsmetadata.getColumnLabel(column) + ">\n" + rs.getString(column) + "\n\n"
-//        }
-//      }
-//      strSDF
-//    }
-//
-//    var statement = sqlConnection.createStatement()
-//    statement.execute(query)
-//    var rsmetadata = statement.getResultSet().getMetaData()
-//    var rs = statement.getResultSet()
-//
-//    val filenamelog = FileUtils.getNewFilename("query_log", ".log", FileUtils.tmpPath)
-//    val foslog = new PrintStream(filenamelog)
-//    while (rs.next) {
-//      val sdf = CompoundUtil.getSDFFromSMiles_RDKit(rs.getString("smiles"))
-//      var strSDF = doQuerySQL2TextSDF(rs, null)
-//      out.println(sdf.replaceAll("\\$\\$\\$\\$", "") + strSDF + "$$$$")
-//
-//    }
-//    out.close()
-//    foslog.close()
-//    //var s = fileName.toList.reverse.takeWhile(c => (c != '/'))
-//    //println(s.reverse.toList.mkString)
-//    //(fileName, s.reverse.toList.mkString)
-//
-//  }
-
   def prettyprintSQL(q: String, html: Boolean = false): String = {
     println("Pretty print Q: ")
     println("Pretty print html: " + html)
@@ -148,7 +117,7 @@ object Querys_helper {
     columntype match {
       //case "numeric" => "%.2f" format rs.getFloat(column)
       case "numeric" => "%.2f" formatLocal (java.util.Locale.US, rs.getFloat(column))
-      case _ => rs.getString(column)
+      case _         => rs.getString(column)
     }
   }
 
@@ -182,11 +151,7 @@ object Querys_helper {
 
   def getResultSet[A, B](sqlConnection: java.sql.Connection, q: scala.slick.lifted.Query[A, B, Seq]) = {
     val qstring = getSQL(q, false)
-    //println("\n\ndoQuerySQL: \n\n")
-    //println(qstring)
-
     if (debug) {
-      Querys_helper.prettyprintSQL(qstring, false)
       this.exportQuerys(List(qstring))
     }
     var statement = sqlConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)
@@ -202,11 +167,11 @@ object Querys_helper {
     val stmt = sqlConnection.createStatement()
     //println("\n\ndoQuerySQLInsert: \n\n")
     //println(qstring)
-    //    if (debug) {
-    //      Querys_helper.prettyprintSQL(qstring, false)
-    //      this.exportQuerys(List(qstring))
-    //      println(qstring)
-    //    }
+    if (debug) {
+      Querys_helper.prettyprintSQL(qstring, false)
+      this.exportQuerys(List(qstring))
+      println(qstring)
+    }
     stmt.executeUpdate(qstring)
   }
 

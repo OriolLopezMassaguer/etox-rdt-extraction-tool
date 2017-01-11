@@ -210,12 +210,12 @@ object Observations_querys {
     val q = subs match {
       case List() => for (
         (compound, study) <- CompoundQuerys.CompoundsStudies_Filter(admin_routes, species, exposure_period);
-        obs <- FindingsAll if study.studyId === obs.studyId && study.substId === obs.substId && !compound.smiles.isEmpty
+        obs <- FindingsAll if study.studyId === obs.studyId && study.substId === obs.substId //&& !compound.smiles.isEmpty
       ) yield (compound, study, obs)
       case l => {
         val q = for (
           (compound, study) <- CompoundQuerys.CompoundsStudies_Filter(admin_routes, species, exposure_period);
-          obs <- FindingsAll if study.studyId === obs.studyId && study.substId === obs.substId && !compound.smiles.isEmpty
+          obs <- FindingsAll if study.studyId === obs.studyId && study.substId === obs.substId //&& !compound.smiles.isEmpty
         ) yield (compound, study, obs)
         val q2 = q.filter(_._2.substId inSet l)
         q2
