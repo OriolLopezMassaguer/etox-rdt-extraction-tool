@@ -254,6 +254,7 @@ trait Tables {
     val source: Column[Option[String]] = column[Option[String]]("source", O.Length(100,varying=true), O.Default(None))
     /** Database column m DBType(mol), Length(2147483647,false), Default(None) */
     val m: Column[Option[String]] = column[Option[String]]("m", O.Length(2147483647,varying=false), O.Default(None))
+    val mw_rdkit: Column[Option[scala.math.BigDecimal]] = column[Option[scala.math.BigDecimal]]("mw_rdkit", O.Length(2147483647,varying=false), O.Default(None))    
     
     /** Uniqueness Index over (substId) (database name compounds_subst_id_key) */
     val index1 = index("compounds_subst_id_key", substId, unique=true)

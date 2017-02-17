@@ -167,11 +167,11 @@ object Querys_helper {
     val stmt = sqlConnection.createStatement()
     //println("\n\ndoQuerySQLInsert: \n\n")
     //println(qstring)
-    if (debug) {
-      Querys_helper.prettyprintSQL(qstring, false)
-      this.exportQuerys(List(qstring))
-      println(qstring)
-    }
+    //if (debug) {
+    //      Querys_helper.prettyprintSQL(qstring, false)
+    //    this.exportQuerys(List(qstring))
+    //println(qstring)
+    //}
     stmt.executeUpdate(qstring)
   }
 

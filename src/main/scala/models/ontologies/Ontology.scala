@@ -74,13 +74,15 @@ object Ontologies_Files_old {
 
 object Ontologies_DB {
   private def expandTermBase(term: String): List[String] = {
+    val term_escaped= term.replace("'", "''")
 
-    val qs = " ( (select child_term from label_params('" + term + "'))" +
+    val qs = " ( (select child_term from label_params('" + term_escaped + "'))" +
       " union" +
-      "(select parent_term from label_params('" + term + "'))" +
+      "(select parent_term from label_params('" + term_escaped + "'))" +
       " union " +
-      " (select '" + term + "')) "
+      " (select '" + term_escaped + "')) "
 
+    println(qs)
     val q = Q.queryNA[String](qs)
     val l = models.etox_reports.Querys_etox_reports.db.withDynSession {
       q.list
@@ -89,8 +91,9 @@ object Ontologies_DB {
   }
 
   val expandTerm = scalaz.Memo.immutableHashMapMemo[String, List[String]] { term: String => expandTermBase(term) }
+  //val expandTerm = (term: String) => expandTermBase(term)
   val all_hpf_observations = expandTerm("morphologic change").zipWithIndex
-  
+
   def expandObservations(observations: List[String], observation_source: String) = {
 
     if (observations.isEmpty && observation_source == "HistopathologicalFinding")

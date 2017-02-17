@@ -38,9 +38,11 @@ object FileDebug {
   def postfix(source: String, agg: Observations_querys.AggregationMethod, TR: Boolean, change: String, organ: Option[String], patterntag: String = "") = {
     val TRS = if (TR) "TR" else "All"
     val aggS = agg match {
-      case Observations_querys.LOAEL         => "LOEL"
-      case Observations_querys.Existence     => "Flag"
-      case Observations_querys.MaxFoldChange => "MaxFoldChange"
+      case Observations_querys.LOAEL               => "LOEL"
+      case Observations_querys.Existence           => "Flag"
+      case Observations_querys.MaxFoldChange       => "MaxFoldChange"
+      case Observations_querys.NumFindingsDistinct => "NumFindingsDistinct"
+      case Observations_querys.NumFindings         => "NumFindings"
     }
     val l = if (source == "HistopathologicalFinding") {
       organ match {
@@ -99,13 +101,15 @@ object Observations_querys {
 
   type ObservationQuery = slick.driver.PostgresDriver.simple.Query[(Tables.Compounds, Tables.Study, Tables.FindingsAll), (Tables.CompoundsRow, Tables.StudyRow, Tables.FindingsAllRow), Seq]
 
-  lazy val qComps = for (c <- CompoundQuerys.CompoundsAll) yield (c.databaseSubstanceId, c.smiles, c)
+  lazy val qComps = for (c <- CompoundQuerys.CompoundsAll) yield (c.databaseSubstanceId, c.smiles, c.molecularWeight, c.mw_rdkit, c)
   lazy val dtComps = DataFrame(Querys_etox_reports.con, qComps)
 
   abstract class AggregationMethod
   case object Existence extends AggregationMethod
   case object LOAEL extends AggregationMethod
   case object MaxFoldChange extends AggregationMethod
+  case object NumFindings extends AggregationMethod
+  case object NumFindingsDistinct extends AggregationMethod
 
   val rnd = new scala.util.Random()
 
@@ -210,12 +214,12 @@ object Observations_querys {
     val q = subs match {
       case List() => for (
         (compound, study) <- CompoundQuerys.CompoundsStudies_Filter(admin_routes, species, exposure_period);
-        obs <- FindingsAll if study.studyId === obs.studyId && study.substId === obs.substId //&& !compound.smiles.isEmpty
+        obs <- FindingsAll if study.studyId === obs.studyId && study.substId === obs.substId && !compound.smiles.isEmpty
       ) yield (compound, study, obs)
       case l => {
         val q = for (
           (compound, study) <- CompoundQuerys.CompoundsStudies_Filter(admin_routes, species, exposure_period);
-          obs <- FindingsAll if study.studyId === obs.studyId && study.substId === obs.substId //&& !compound.smiles.isEmpty
+          obs <- FindingsAll if study.studyId === obs.studyId && study.substId === obs.substId && !compound.smiles.isEmpty
         ) yield (compound, study, obs)
         val q2 = q.filter(_._2.substId inSet l)
         q2
@@ -284,7 +288,7 @@ object Observations_querys {
                        aggregationMethod: AggregationMethod = Existence,
                        changes: List[String] = List(),
                        prefix: String = "",
-                       postfix: String = "",                       
+                       postfix: String = "",
                        patterns: Map[String, List[String]],
                        onlyPatterns: Boolean = true,
                        debug: Boolean = false) = {
@@ -297,6 +301,16 @@ object Observations_querys {
         case MaxFoldChange => {
           val gp = findingsQ.groupBy({ case a => (a.substId, a.termTop) })
           val qg1 = gp.map { case (parameter, hpfs) => (parameter, hpfs.map({ case ccf => ccf.averagefoldchange }).max) }
+          qg1
+        }
+        case NumFindingsDistinct => {
+          val gp = findingsQ.groupBy({ case a => (a.substId, a.termTop) })
+          val qg1 = gp.map { case (parameter, hpfs) => (parameter, hpfs.map({ case ccf => ccf.observationNormalised }).countDistinct) }
+          qg1
+        }
+        case NumFindings => {
+          val gp = findingsQ.groupBy({ case a => (a.substId, a.termTop) })
+          val qg1 = gp.map { case (parameter, hpfs) => (parameter, hpfs.map({ case ccf => ccf.observationNormalised }).size) }
           qg1
         }
         case _ => {
@@ -312,6 +326,7 @@ object Observations_querys {
         val organsSelected = if (observation_source.head == "HistopathologicalFinding") organs else List()
         val changesSelected = if (observation_source.head == "HistopathologicalFinding") List() else changes
         val qObs = ObservationsRAW(admin_routes, species, exposure_period, observation_source, relevancefiltering, sexlist, organsSelected, doseMin, doseMax, changesSelected)
+          .filter(_.dose > BigDecimal(0.0))
         val qObsProjected = for (q <- qObs) yield (q.substId, q.dose, q.source, q.observationNormalised)
         qObsProjected.selectStatement
       }
@@ -319,15 +334,26 @@ object Observations_querys {
     def InsertFindingsPatterns = {
       def insert_patterns(qp: String, id: Int, source: String) = {
         val l = for ((pattern, findings) <- patterns) yield ({
+          println("******")
+          println(findings)
+          println("******")
+          val findings_expanded = findings.map(Ontologies_DB.expandTerm(_)).flatten.toList
           val findings_list = for (finding <- findings) yield ("'" + finding.replace("'", "''") + "'")
-          "insert into findings_all_q " +
+          findings_expanded.map(println)
+          findings_list.map(println)
+          val q = "insert into findings_all_q " +
             "(" +
-            "select " + id + ",'pattern_" + pattern + "' term_top, findings.subst_id subst_id,findings.dose dose " +
+            "select " + id + ",'pattern_" + pattern + "' term_top, findings.subst_id subst_id,findings.dose dose,observation_normalised observation_normalised" +
             " from (" + qp + ") findings " +
             " where findings.source = '" + source + "'" +
             " and findings.observation_normalised in (" + findings_list.mkString(",") + ")" +
             ")"
+          println("-----------------------")
+          println(q)
+          println("-----------------------")
+          q
         })
+
         l
       }
 
@@ -388,36 +414,50 @@ object Observations_querys {
 
     //Unaggregated
 
-    val findingsQProjected = for (f <- findingsQ) yield (f.int4, f.dose, f.termTop, f.substId)
-    Querys_helper.exportQuery(findingsQProjected.selectStatement, "/data/paper_repeated_dose/unclustered/dtQ_UnAgg.html")
+    val findingsQProjected = for (f <- findingsQ) yield (f.int4, f.dose, f.termTop, f.substId, f.observationNormalised)
+    //Querys_helper.exportQuery(findingsQProjected.selectStatement, "/data/paper_repeated_dose/unclustered/dtQ_UnAgg.html")
 
     val dtUnAgg = models.dataframe.DataFrame(Querys_etox_reports.con, findingsQProjected).renameFields(Map("subst_id" -> "database_substance_id"))
-    dtUnAgg.toText("/data/paper_repeated_dose/unclustered/dt_unagg.tsv")
+    //dtUnAgg.toText("/data/paper_repeated_dose/unclustered/dt_unagg.tsv")
 
-    val dtUnAgg_Unpivoted = dtMain.join_left(dtUnAgg, "database_substance_id", "database_substance_id")
-    dtUnAgg.toText("/data/paper_repeated_dose/unclustered/dt_unagg_unpivoted.tsv")
+    val dtUnAgg_Unpivoted = dtMain.join(dtUnAgg, "database_substance_id", "database_substance_id")
+    //dtUnAgg.toText("/data/paper_repeated_dose/unclustered/dt_unagg_unpivoted.tsv")
     //Aggregated
 
     val dtAgg = models.dataframe.DataFrame(Querys_etox_reports.con, groupedQ).renameFields(Map("subst_id" -> "database_substance_id"))
-    Querys_helper.exportQuery(groupedQ.selectStatement, "/data/paper_repeated_dose/unclustered/dtQ_Agg.html")
+    //Querys_helper.exportQuery(groupedQ.selectStatement, "/data/paper_repeated_dose/unclustered/dtQ_Agg.html")
     dtAgg.toText("/data/paper_repeated_dose/unclustered/dt_agg.tsv")
 
     val dtPivoted = aggregationMethod match {
-      case Existence     => dtAgg.pivot_simple("database_substance_id", List("term_top"), prefix, postfix)
-      case LOAEL         => dtAgg.pivotMeasure("database_substance_id", List("term_top"), "min", prefix, postfix)
-      case MaxFoldChange => dtAgg.pivotMeasure("database_substance_id", List("term_top"), "max", prefix, postfix)
+      case Existence           => dtAgg.pivot_simple("database_substance_id", List("term_top"), prefix, postfix)
+      case LOAEL               => dtAgg.pivotMeasure("database_substance_id", List("term_top"), "min", prefix, postfix)
+      case MaxFoldChange       => dtAgg.pivotMeasure("database_substance_id", List("term_top"), "max", prefix, postfix)
+      case NumFindings         => dtAgg.pivotMeasure("database_substance_id", List("term_top"), "count", prefix, postfix)
+      case NumFindingsDistinct => dtAgg.pivotMeasure("database_substance_id", List("term_top"), "count", prefix, postfix)
     }
-    dtPivoted.toText("/data/paper_repeated_dose/unclustered/dt_pivoted.tsv")
+    //dtPivoted.toText("/data/paper_repeated_dose/unclustered/dt_pivoted.tsv")
 
-    val dtAllPivoted = dtMain.join_left(dtPivoted, "database_substance_id", "database_substance_id")
-    val dtAllUnpivoted = dtMain.join_left(dtAgg, "database_substance_id", "database_substance_id")
-    dtAllPivoted.toText("/data/paper_repeated_dose/unclustered/dt_Allpivoted.tsv")
-    dtAllUnpivoted.toText("/data/paper_repeated_dose/unclustered/dt_AllUnPivoted.tsv")
-    dtMain.toText("/data/paper_repeated_dose/unclustered/dt_main.tsv")
+    val dtAllPivoted = dtMain.join(dtPivoted, "database_substance_id", "database_substance_id")
+    val dtAllUnpivoted = dtMain.join(dtAgg, "database_substance_id", "database_substance_id")
+    //dtAllPivoted.toText("/data/paper_repeated_dose/unclustered/dt_Allpivoted.tsv")
+    //dtAllUnpivoted.toText("/data/paper_repeated_dose/unclustered/dt_AllUnPivoted.tsv")
+    //dtMain.toText("/data/paper_repeated_dose/unclustered/dt_main.tsv")
 
     (dtAllPivoted, dtAllUnpivoted, dtUnAgg_Unpivoted, id)
   }
 
+  def getNoHPFCompounds(observations: List[String] = List(),
+                        admin_routes: List[String] = List(),
+                        observationSource: String = "",
+                        species: List[String] = List(),
+                        relevanceFiltering: Boolean = true,
+                        exposure_period: Option[(Int, Int)] = None,
+                        organs: List[String] = List(),
+                        sex_list: List[String] = List()) = {
+    val qObs = ObservationsRAW(admin_routes, species, exposure_period, List(observationSource), relevanceFiltering, sex_list, organs)
+    val qObsProjected = for (q <- qObs if q.observationNormalised.isNotNull) yield (q.substId, q.dose, q.source, q.observationNormalised)
+    qObsProjected
+  }
   def getRangeDoses(admin_routes: List[String] = List(), species: List[String] = List(), exposure_period: Option[(Int, Int)] = None, sexlist: List[String]): DataFrame = {
     val qR = Observations_querys.RangeDoses_Agg(
       admin_routes = admin_routes,
@@ -426,6 +466,7 @@ object Observations_querys {
       sexlist = sexlist)
 
     val dtR0 = models.dataframe.DataFrame(Querys_etox_reports.con, qR)
+    println(qR.selectStatement)
     //dtR0.toText("rd0.txt")
     val dtR = dtR0
       .renameFields(Map("subst_id" -> "database_substance_id", "min" -> "min_dose", "max" -> "max_dose"))
@@ -447,7 +488,9 @@ object Observations_querys {
     conditions_tag: String = "",
     patterntag: String = "",
     newtagging: Boolean = false,
-    debug: Boolean = false) = {
+    debug: Boolean = false,
+    path: String = "",
+    aggregation: Observations_querys.AggregationMethod = Observations_querys.LOAEL) = {
 
     def anonymize(dt: DataFrame) = {
       dt.join(models.etox_reports.CompoundQuerys.getAnonymousCompoundMap, "database_substance_id", "database_substance_id")
@@ -456,7 +499,7 @@ object Observations_querys {
 
     val onlyPatterns = !patterns.isEmpty
 
-    val postfix = FileDebug.postfix(observationSource, Observations_querys.LOAEL, relevanceFiltering, "Increased", FileDebug.getOrgan(observationSource, organs), patterntag)
+    val postfix = FileDebug.postfix(observationSource, aggregation, relevanceFiltering, "Increased", FileDebug.getOrgan(observationSource, organs), patterntag)
 
     val prefix = if (newtagging) sourcesPrefix(observationSource) + "_" + conditions_tag else sourcesPrefix(observationSource)
     val (dtPivoted, dtUnpivoted, dtUnAggUnpivoted, id) = Observations_Agg(
@@ -470,7 +513,7 @@ object Observations_querys {
       organs,
       None,
       None,
-      aggregationMethod = Observations_querys.LOAEL,
+      aggregationMethod = aggregation,
       changes = changes,
       prefix = prefix,
       postfix = postfix,
@@ -509,10 +552,10 @@ object Observations_querys {
       (dtUnAggUnpivotedMod, filenameUnAggUnpivoted))
     val l2 = if (!dropstructure)
       for ((d, fname) <- l)
-        yield (d.join(dtComps.project(List("database_substance_id", "smiles")), "database_substance_id", "database_substance_id"), fname)
+        yield (d.join(dtComps.project(List("database_substance_id", "smiles", "molecular_weight", "mw_rdkit")), "database_substance_id", "database_substance_id"), fname)
     else
       l
-    FileDebug.write_descriptions(species, admin_routes, exposure_period, List(relevanceFiltering), List(observationSource), organs, observations, "/data/paper_repeated_dose")
+    FileDebug.write_descriptions(species, admin_routes, exposure_period, List(relevanceFiltering), List(observationSource), organs, observations, path)
     l2
   }
 

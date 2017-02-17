@@ -18,7 +18,8 @@ object h2016_paper_repeated_dose_filter {
 
   val tagging = true
   val debug = false
-  val structure = true
+  val structure = false
+  val aggregations = List(Observations_querys.NumFindings, Observations_querys.LOAEL,Observations_querys.NumFindingsDistinct)
 
   val CCFindings = List(
     "Alanine Aminotransferase", "Aspartate Aminotransferase", "Gamma Glutamyl Transferase", "Bilirubin", "Direct Bilirubin", "Indirect Bilirubin", "Alkaline Phosphatase")
@@ -36,7 +37,7 @@ object h2016_paper_repeated_dose_filter {
     List(("Rat_broad", List("RAT", "MOUSE")),
       ("Rat_narrow", List("RAT")))
 
-  def clustered_extract2(exposure: (String, Option[(Int, Int)]), rout: (String, List[String]), spe: (String, List[String]), pat: (String, Map[String, List[String]])) = {
+  def clustered_extract2(exposure: (String, Option[(Int, Int)]), rout: (String, List[String]), spe: (String, List[String]), pat: (String, Map[String, List[String]]),ag:Observations_querys.AggregationMethod) = {
 
     val (tag_exposure, exp) = exposure
     val (tag_route, routes) = rout
@@ -55,11 +56,13 @@ object h2016_paper_repeated_dose_filter {
       conditions_tag = tag_specie + "_" + tag_route + "_" + tag_exposure,
       dropstructure = !structure,
       newtagging = tagging,
-      debug = debug)
+      path = home_path,
+      debug = debug,
+      aggregation = ag)
     for ((dt, filename) <- l) dt.toText(home_path + "/clustered/" + filename)
   }
 
-  def unclustered_extract2(exposure: (String, Option[(Int, Int)]), rout: (String, List[String]), spe: (String, List[String])) = {
+  def unclustered_extract2(exposure: (String, Option[(Int, Int)]), rout: (String, List[String]), spe: (String, List[String]),ag:Observations_querys.AggregationMethod) = {
 
     val (tag_exposure, exp) = exposure
     val (tag_route, routes) = rout
@@ -75,7 +78,9 @@ object h2016_paper_repeated_dose_filter {
       conditions_tag = tag_specie + "_" + tag_route + "_" + tag_exposure,
       dropstructure = !structure,
       newtagging = tagging,
-      debug = true)
+      debug = debug,
+      path = home_path,
+      aggregation = ag)
 
     for ((dt, filename) <- l2) dt.toText(home_path + "/unclustered/" + filename)
 
@@ -89,7 +94,9 @@ object h2016_paper_repeated_dose_filter {
       conditions_tag = tag_specie + "_" + tag_route + "_" + tag_exposure,
       dropstructure = !structure,
       newtagging = tagging,
-      debug = debug)
+      debug = debug,
+      path = home_path,
+      aggregation = ag)
 
     for ((dt, filename) <- l) dt.toText(home_path + "/unclustered/" + filename)
 
@@ -103,23 +110,25 @@ object h2016_paper_repeated_dose_filter {
       conditions_tag = tag_specie + "_" + tag_route + "_" + tag_exposure,
       dropstructure = !structure,
       newtagging = tagging,
-      debug = debug)
+      debug = debug,
+      path = home_path,
+      aggregation = ag)
 
     for ((dt, filename) <- l3) dt.toText(home_path + "/unclustered/" + filename)
     println("Extracted: ", tag_exposure, tag_route, tag_specie)
   }
 
-  def unclustered_extract = {
+  def unclustered_extract(ag:Observations_querys.AggregationMethod) = {
     for (
       (ex, r, spe) <- exposures.zip(routes_clusters).zip(species_clusters).map { case ((a, b), c) => (a, b, c) }
     ) {
       println(ex, r, spe)
-      unclustered_extract2(ex, r, spe)
-      }
-    
+      unclustered_extract2(ex, r, spe,ag)
+    }
+
   }
 
-  def cluster_extract = {
+  def cluster_extract(ag:Observations_querys.AggregationMethod)= {
     def getPatterns = {
       def getPatterns(file: String) = {
 
@@ -145,16 +154,16 @@ object h2016_paper_repeated_dose_filter {
     }
 
     for (
-      (e, r, s, p) <- exposures.zip(routes_clusters).zip(species_clusters).zip(getPatterns).map { case (((a, b), c), d) => (a, b, c, d) }
-    ) {
-      println(e, r, s,p)
-      this.clustered_extract2(e, r, s, p)
-    }
+      (e, r, s) <- exposures.zip(routes_clusters).zip(species_clusters).map { case ((a, b), c) => (a, b, c) }
+    ) for (p <- getPatterns) clustered_extract2(e, r, s, p,ag)
+
   }
 
   def extract = {
-    unclustered_extract
-    cluster_extract
+    for (ag <- this.aggregations) {
+      unclustered_extract(ag)
+      cluster_extract(ag)
+    }
   }
 }
 
