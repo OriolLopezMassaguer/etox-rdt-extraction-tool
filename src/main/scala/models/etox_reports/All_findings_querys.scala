@@ -487,7 +487,7 @@ object Observations_querys {
     patterns: Map[String, List[String]] = Map(),
     conditions_tag: String = "",
     patterntag: String = "",
-    newtagging: Boolean = false,
+    newtagging: Boolean = true,
     debug: Boolean = false,
     path: String = "",
     aggregation: Observations_querys.AggregationMethod = Observations_querys.LOAEL) = {

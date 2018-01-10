@@ -23,7 +23,8 @@ object ApplicationBuild extends Build {
     "com.quantifind" %% "sumac" % "0.3.0",
     "org.apache.commons" % "commons-math3" % "3.4.1",
     "commons-io" % "commons-io" % "2.4",
-    "com.github.OriolLopezMassaguer" %% "dataframe" % "1.2.2-SNAPSHOT" classifier "assembly")
+    "com.github.OriolLopezMassaguer" %% "dataframe" % "1.2.2" classifier "assembly"
+)
 
   val main = Project(appName, file(".")).settings(
     version := appVersion,

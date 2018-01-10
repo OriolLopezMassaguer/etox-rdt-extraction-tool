@@ -4,7 +4,7 @@ import com.typesafe.config._
 
 object Config {
 
-  val cf = ConfigFactory.parseFile(new java.io.File("/opt/etox_invivo_extraction/conf/application.conf"))
+  val cf = ConfigFactory.parseFile(new java.io.File("conf/application.conf"))
   val home_path = cf.getString("home.path")
   println("Home path: " + home_path)
   val dbURLetox = cf.getString("etoxdb.url")
