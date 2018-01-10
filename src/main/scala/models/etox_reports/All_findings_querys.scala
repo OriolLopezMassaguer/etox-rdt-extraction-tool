@@ -145,13 +145,16 @@ object Observations_querys {
 
     def optionallyFilterByObservation(observations: List[String])(observationsQ: ObservationQuery) = {
       val observations_expanded = observations.map(Ontologies_DB.expandTerm(_)).flatten
-      println("Observations expansion: ")
-      println(observations)
-      println(" -----> ")
-      println(observations_expanded)
+      
       observations_expanded match {
         case List() => observationsQ
-        case obs    => observationsQ.filter(_._3.observationNormalised inSet obs)
+        case obs    => {
+          println("Observations expansion: ")
+          println(observations)
+          println(" -----> ")
+          println(observations_expanded)
+          observationsQ.filter(_._3.observationNormalised inSet obs)
+        }
       }
     }
 
@@ -416,7 +419,7 @@ object Observations_querys {
 
     val findingsQProjected = for (f <- findingsQ) yield (f.int4, f.dose, f.termTop, f.substId, f.observationNormalised)
     //Querys_helper.exportQuery(findingsQProjected.selectStatement, "/data/paper_repeated_dose/unclustered/dtQ_UnAgg.html")
-
+    println("Query findingsQProjected: "+findingsQProjected.selectStatement)
     val dtUnAgg = models.dataframe.DataFrame(Querys_etox_reports.con, findingsQProjected).renameFields(Map("subst_id" -> "database_substance_id"))
     //dtUnAgg.toText("/data/paper_repeated_dose/unclustered/dt_unagg.tsv")
 
@@ -426,7 +429,7 @@ object Observations_querys {
 
     val dtAgg = models.dataframe.DataFrame(Querys_etox_reports.con, groupedQ).renameFields(Map("subst_id" -> "database_substance_id"))
     //Querys_helper.exportQuery(groupedQ.selectStatement, "/data/paper_repeated_dose/unclustered/dtQ_Agg.html")
-    dtAgg.toText("/data/paper_repeated_dose/unclustered/dt_agg.tsv")
+    //dtAgg.toText("/data/paper_repeated_dose/unclustered/dt_agg.tsv")
 
     val dtPivoted = aggregationMethod match {
       case Existence           => dtAgg.pivot_simple("database_substance_id", List("term_top"), prefix, postfix)
