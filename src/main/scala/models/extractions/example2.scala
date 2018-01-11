@@ -11,6 +11,7 @@ import models._
 import models.ontologies.Ontologies_DB
 import models.FileUtils
 
+
 object example2_CCF_transaminases {
 
   val home_path = "../data/example2/"
@@ -41,6 +42,7 @@ object example2_CCF_transaminases {
       species = species_list,
       exposure_period = exposure_range,
       relevanceFiltering = true,
+      changes = List("Increased"),
       conditions_tag = species_tag + "_" + routes_tag + "_" + exposure_tag,
       path = home_path)
 
