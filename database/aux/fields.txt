@@ -1,0 +1,76 @@
+Entity: Study Design
+Fields Subs-------------------
+DB Name
+cdk:Title
+DB Version
+SUBST_ID
+Software Version
+DB Description
+Query_Text
+
+Fields Study-------------------
+Strain
+Report Number
+Standardised Species
+Record Status
+Year Of Study
+Standardised Age
+Age Unit
+Study Quality Assessment
+Dosage
+Source (Company)
+Sex
+Recovery Period (Days)
+Species
+Individual Animal Data
+Administration Route
+Vehicle
+Age At Start Of Treatment
+Exposure Period (Days)
+
+Fields fieldsStruc-------------------
+Database Substance Id
+Inchi
+Substance Status
+Cas Number
+Common Name
+Companies Substance Id
+Molecular Weight
+Pharmacological Action
+Smiles
+Vitic Legacy Recno
+Molecular Formula
+
+Fields HPF-------------------
+Total Number Of Animals
+Sex
+Grade
+Timepoint
+Relevance
+Histopathology Finding
+Standardised Pathology
+Histopathology Organ Affected
+Number Of Animals Affected
+Timepoint Unit
+Dose (Mg/Kg)
+Standardised Organ
+Fields CCF-------------------
+Sex
+Timepoint
+Relevance
+Sd
+Clinical Chemistry Parameter
+Standardised Parameter
+Average Fold Change
+Finding
+Timepoint Unit
+Average Value
+Dose (Mg/Kg)
+Unit
+
+Common-------------------
+Sex
+Timepoint
+Relevance
+Timepoint Unit
+Dose (Mg/Kg)
