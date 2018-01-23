@@ -1,7 +1,3 @@
-Performing extractions:
-
-- Start Scala console from sbt (see DEVELOPMENT.md)
-
 - You can run extractions already developed:
 	The source code is located at:
 		/phi/users/oriol/traspaso/etox_RDT_tool/etox-rdt-extraction-tool/src/main/scala/models/extractions
@@ -17,9 +13,7 @@ Performing extractions:
 		/phi/users/oriol/traspaso/etox_RDT_tool/data/example2
 		/phi/users/oriol/traspaso/etox_RDT_tool/data/example3
 		/phi/users/oriol/traspaso/etox_RDT_tool/data/example4
-
-
-- Reference extraction API:
+- Extraction API: (to be completed
 
 	The extractions defined are based on the API call:
 	models.etox_reports.Observations_querys.getEndpoints_v3
@@ -88,3 +82,30 @@ Performing extractions:
 		unpivoted + unagregated data: Data extracted according to filtering conditions + inferred data in case of HPF findings
 		unpivoted data: Data extracted according to filtering conditions + inferred data in case of HPF findings + aggregated at finding/compound level
 		data qsar like (pivoted + aggregated): Data extracted according to filtering conditions + inferred data in case of HPF findings + aggregated at finding/compound level + pivoted (endpoints (findings or clusters) are transferred to columns
+
+
+
+- How to obtain possible filtering values:
+
+  From scala console execute:
+
+	scala> models.etox_reports.Observations_filtering_values.filteringValues("OrganWeights")
+	scala> models.etox_reports.Observations_filtering_values.filteringValues("UrianalysisFindingsFindings")
+	 Other possible values are:
+
+		Findings_Types
+
+		OrganWeights
+		UrianalysisFindingsFindings
+		ClinicalHaematologicalFinding
+		HistopathologicalFinding
+		ClinicalChemicalFinding
+		
+		NormalisedSex
+		NormalisedAdminRoute
+		NormalisedSpecies
+		OrgansNormalied
+
+	the values can also be exporte to files:
+
+	scala> models.etox_reports.Observations_filtering_values.export_filtering_values(path_where_exporting_is_done)
