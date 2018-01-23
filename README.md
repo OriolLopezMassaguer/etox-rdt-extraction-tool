@@ -1,44 +1,6 @@
-Setup:
-- clone this github repo: https://github.com/phi-grib/etox-rdt-extraction-tool
-- database: import database.sql
-	connect to postgres using psql
-	create database "vitic2016_1"
-	logout
-	import database using psql:
-		 psql --host=gea --username=postgres vitic2016_1 < vitic_2016_1_20180111.sql
-			- gea: database_server
-			- vitic2016_1: database name
-			- enter password when asked
-- edit config file: conf/application.conf
-	etoxdb.url="jdbc:postgresql://gea/vitic2016_1" 
-		database server (gea in this example)
-		database name (usually vitic2016_1
-	etoxdb.user=postgres
-	etoxdb.password=postgres
+SETUP.md .....
 
-Statring Scala console / Eclipse
-- configure environment: 
-	in /phi/users/oriol/traspaso
-- execute:
-	source environment_dev.sh
-
-- Start eclipse:
-	eclipse&
-	
-- Caveats: maybe is not a good idea to share the eclipse workspace
-    - You can create a per user works
-
-- Start sbt tool:
-	from /phi/users/oriol/traspaso/etox_RDT_tool/etox-rdt-extraction-tool
-	from unix prompt run "sbt"
-		Simple build tool scala (full reference https://www.scala-sbt.org/0.13/docs/index.html)
-		Very complex tool, we only use basic functions
-	from sbt start scala console
-	sbt> console
-	
-- Executing code:
-	from scala console
-	scala>
+DEVELOPMENT.md ....
 
 Performing extractions:
 
