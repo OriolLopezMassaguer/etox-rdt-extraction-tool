@@ -1,22 +1,30 @@
 Starting Scala console / Eclipse
-- configure environment: 
-	in /phi/users/oriol/traspaso
-- execute:
-	source environment_dev.sh
-
+- configure environment:
+    - in /phi/users/oriol/traspaso
+    - execute:
+	    source environment_dev.sh
 - Start eclipse:
-	eclipse&
-	
-    - Caveats: maybe is not a good idea to share the eclipse workspace
-        - You can create a per user workspace
+	- using eclipse&
+    - Caveats: It is not a good idea to share the eclipse workspace
+        - You should create a per user workspace
+        - create an empty folder to store the workspace
         - Inside eclipse
-            Create
+            - Switch workspace: File> Switch Workspace
+            - Select the previously created folder
         - importing project in eclipse
             - start sbt from from project root
             - sbt> eclipse
+            - wait until sbt creates eclipse files
             - from eclipse import the project
+            - In eclipse:
+                - File> Import
+                - Select General\Existing project in workspace
+                - Select the project source code folder
+    - See https://github.com/sbt/sbteclipse
+    - See http://scala-ide.org/docs/current-user-doc/gettingstarted/index.html
 
-Executing Scala code interactbively
+
+Executing Scala code interactively
 
 - Start sbt tool:
 	from /phi/users/oriol/traspaso/etox_RDT_tool/etox-rdt-extraction-tool
@@ -25,10 +33,14 @@ Executing Scala code interactbively
 		Very complex tool, we only use basic functions
 	from sbt start scala console
 	sbt> console
-	
 - Executing code:
 	from scala console
 	scala>
+- After changing code you can exit the console using:
+    scala>:quit
+- and reentr the console to use the change code after the recompilation:
+    sbt> console
+
 
 
 - How to obtain possible filtering values:
@@ -55,8 +67,6 @@ Executing Scala code interactbively
 	the values can also be exporte to files:
 
 	scala> models.etox_reports.Observations_filtering_values.export_filtering_values(path_where_exporting_is_done)
-
-
 - Internal RDT
 	Data model main entities
 		compounds->studies->findings_all
@@ -85,6 +95,7 @@ Executing Scala code interactbively
 			"necrosis" expansion
 			scala> models.ontologies.Ontologies_DB.expandTerm("necrosis")
 			res3: List[String] = List(necrosis, hepatocellular, necrosis, squamous epithelium, necrosis, leydig cell, necrosis, respiratory epithelium, necrosis, zonal, diffus, necrosis, myocardiocytes, necrosis, testicular, necrosis, lymphocytes, necrosis, adnexal, necrosis, soft tissue, necrosis, zonal, single cell necrosis, necrosis, renal tubules, necrosis, olfactory epithelium, necrosis, myofiber, necrosis, zonal, periportal, necrosis, zonal, midzonal, necrosis, tubular, necrosis, endometrial, necrosis, focal/multifocal, necrosis, epidermal, necrosis, myometrial, necrosis, mucosa, necrosis, papillary, single cell necrosis, epithelial, cell debris, luminal, necrosis, fibrinoid, necrosis, testis, necrosis, neuronal, necrosis, zonal, centrilobular, fat necrosis, necrosis, necrosis, epithelial)
+
 
 
 
