@@ -103,7 +103,7 @@ object Observations_querys {
 
   type ObservationQuery = slick.driver.PostgresDriver.simple.Query[(Tables.Compounds, Tables.Study, Tables.FindingsAll), (Tables.CompoundsRow, Tables.StudyRow, Tables.FindingsAllRow), Seq]
 
-  lazy val qComps = for (c <- CompoundQuerys.CompoundsAll) yield (c.databaseSubstanceId, c.smiles, c.molecularWeight, c.mw_rdkit, c)
+  lazy val qComps = for (c <- CompoundQuerys.CompoundsAll) yield (c.databaseSubstanceId, c.smiles, c.molecularWeight, c)
   lazy val dtComps = DataFrame(Querys_etox_reports.con, qComps)
 
   abstract class AggregationMethod

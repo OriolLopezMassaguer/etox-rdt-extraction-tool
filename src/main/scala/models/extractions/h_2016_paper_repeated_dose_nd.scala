@@ -13,7 +13,7 @@ import models.FileUtils
 
 object h2016_paper_repeated_dose_nd {
 
-  val home_path = "/data/paper_repeated_dose_nd/"
+  val home_path = "../data/paper_repeated_dose_nd_test/"
   FileUtils.tmpPath = home_path + "sql/"
 
   def getQ = Observations_querys.getRangeDoses(List("INTRAESOPHAGEAL", "INTRAGASTRIC", "NASOGASTRIC", "ORAL", "ORAL GAVAGE", "OROPHARYNGEAL"), List("RAT"), Some(0, 1000000), List())
