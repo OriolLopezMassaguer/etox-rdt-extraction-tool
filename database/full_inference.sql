@@ -1,9 +1,11 @@
 -- Full ontologies inference
---select count(*) from infer_findings_all_complete;
+-- select count(*) from infer_findings_all_complete;
+
 drop table infer_findings_all_complete;
 create table infer_findings_all_complete as
 select * from findings_all 
 where organ_normalised is not null and observation_normalised is not null;
+
 
 drop table infer_all_organs;
 create table infer_all_organs as select child_term,parent_term,super_parent from label_params('anatomical entity');
