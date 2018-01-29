@@ -9,7 +9,7 @@
 	    * scala> models.extractions.example1_HPF_liver.extract
 		* scala> models.extractions.example2_CCF_transaminases.extract
 		* scala> models.extractions.example3_Organ_weights.extract
-		* scala> example4_HPF_clusters.extract
+		* scala> models.extractions.example4_HPF_clusters.extract
 	* Extracted data is stored in folders (path relative to /phi/users/oriol/traspaso/etox_RDT_tool/etox-rdt-extraction-tool in the example)
 		* /phi/users/oriol/traspaso/etox_RDT_tool/data/example1
 		* /phi/users/oriol/traspaso/etox_RDT_tool/data/example2
