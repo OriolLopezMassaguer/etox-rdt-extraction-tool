@@ -11,7 +11,7 @@ Setup:
 		        * gea: database_server
                 * vitic2016_1: database name (previously created)
 			    * enter password when asked
-
+        * file located in /phi/users/oriol/traspaso/etox_RDT_tool
 * Setup database connection form app:
     * edit config file: conf/application.conf
     * etoxdb.url="jdbc:postgresql://gea/vitic_2016_1"
