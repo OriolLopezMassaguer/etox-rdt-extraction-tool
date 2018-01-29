@@ -1,21 +1,21 @@
-- Internal RDT
+# Internal RDT
 
-Data model main entities
+## Data model main entities
 
-	compounds->studies->findings_all
-	
-	Compounds: Structure etc
-	Studies: Experimental conditions: species, admin route, exposure period etc.
-	findings_all: Unified findings table. Stores different quantitative and qualitative findings in a unified way:
-					finding types: obatainde by "select distinct source from findings_all"
-						'ClinicalChemicalFinding'
-						'UrianalysisFinding'
-						'HistopathologicalFinding'
-						'ClinicalHaematologicalFinding'
-						'OrganWeights'
-		Important note: findings_all only contains facts without inferences. To complete HPF findings inference must be applied. But other findings are didn't need inference.
+* compounds->studies->findings_all
+    *![ER_diagram_vitic2016.1](ER_diagram_vitic2016.1.png)
+    * Compounds: Structure etc
+    * Studies: Experimental conditions: species, admin route, exposure period etc.
+    * findings_all: Unified findings table. Stores different quantitative and qualitative findings in a unified way:
+        * finding types: obatainde by "select distinct source from findings_all"
+            * 'ClinicalChemicalFinding'
+            * 'UrianalysisFinding'
+            * 'HistopathologicalFinding'
+            * 'ClinicalHaematologicalFinding'
+            * 'OrganWeights'
+        * Important note: findings_all only contains facts without inferences. To complete HPF findings inference must be applied. But other findings are didn't need inference.
 
-Ontologies:
+## Ontologies
 
 		SQL inference:
 		Execute from pgadmin or psql the following query
