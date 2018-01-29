@@ -7,7 +7,7 @@ Setup:
     * logout
     * import database using psql:
         * psql --host=gea --username=postgres vitic_2016_1 < vitic_2018.sql
-			where
+			* where
 		        * gea: database_server
                 * vitic2016_1: database name (previously created)
 			    * enter password when asked
