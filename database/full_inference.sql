@@ -1,8 +1,11 @@
 -- Full ontologies inference
-create table infer_all_organs as select child_term,parent_term,super_parent from label_params('anatomical entity'); 
+drop table infer_all_organs;
+create table infer_all_organs as select child_term,parent_term,super_parent from label_params('anatomical entity');
 
-create table infer_all_morph_changes as select child_term,parent_term,super_parent from label_params('morphologic change'); 
+drop table infer_all_morph_changes;
+create table infer_all_morph_changes as select child_term,parent_term,super_parent from label_params('morphologic change');
 
+drop table infer_hpf_organs;
 create table infer_hpf_organs as
 	select distinct
 		findings_all.*, 
@@ -10,7 +13,7 @@ create table infer_hpf_organs as
 	from findings_all left join infer_all_organs on findings_all.organ_normalised=infer_all_organs.child_term
 	where source ='HistopathologicalFinding';
 
-
+drop table infer_hpf_organs_morph_changes;
 create table infer_hpf_organs_morph_changes as
 select distinct
 	infer_hpf_organs.*,
