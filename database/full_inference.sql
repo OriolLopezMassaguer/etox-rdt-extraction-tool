@@ -16,7 +16,7 @@ create table infer_hpf_organs as
 	select distinct
 		infer_findings_all_complete.*, 
 		infer_all_organs.parent_term inferred_organ
-	from findings_all left join infer_all_organs on findings_all.organ_normalised=infer_all_organs.child_term
+	from infer_findings_all_complete left join infer_all_organs on findings_all.organ_normalised=infer_all_organs.child_term
 	where source ='HistopathologicalFinding';
 
 drop table infer_hpf_organs_morph_changes;
