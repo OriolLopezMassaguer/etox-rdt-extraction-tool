@@ -90,17 +90,17 @@
 
     * scala> models.etox_reports.Observations_filtering_values.filteringValues("OrganWeights")
 	* scala> models.etox_reports.Observations_filtering_values.filteringValues("UrianalysisFindingsFindings")
-    * Other possible values are:
-        *	Findings_Types
-        *	OrganWeights
-        *	UrianalysisFindingsFindings
-        *	ClinicalHaematologicalFinding
-        *	HistopathologicalFinding
-        *	ClinicalChemicalFinding
-        *	NormalisedSex
-        *	NormalisedAdminRoute
-        *	NormalisedSpecies
-        *	OrgansNormalied
+        * Other possible values are:
+            *	Findings_Types
+            *	OrganWeights
+            *	UrianalysisFindingsFindings
+            *	ClinicalHaematologicalFinding
+            *	HistopathologicalFinding
+            *	ClinicalChemicalFinding
+            *	NormalisedSex
+            *	NormalisedAdminRoute
+            *	NormalisedSpecies
+            *	OrgansNormalied
 
     * the values can also be exported to files:
 	    * scala> models.etox_reports.Observations_filtering_values.export_filtering_values(path_where_exporting_is_done)
