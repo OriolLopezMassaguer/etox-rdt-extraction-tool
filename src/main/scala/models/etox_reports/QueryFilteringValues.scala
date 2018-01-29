@@ -28,16 +28,16 @@ import scala.reflect._
 
 object Observations_filtering_values {
   //Studies parameters
-  val qNormalisedAdminRoute = CompoundQuerys.CompoundsStudies.map(_._2.normalisedAdministrationRoute)
-  val qNormalisedSex = CompoundQuerys.CompoundsStudies.map(_._2.normalisedSex)
-  val qNormalisedSpecies = CompoundQuerys.CompoundsStudies.map(_._2.normalisedSpecies)
+  private val qNormalisedAdminRoute = CompoundQuerys.CompoundsStudies.map(_._2.normalisedAdministrationRoute)
+  private val qNormalisedSex = CompoundQuerys.CompoundsStudies.map(_._2.normalisedSex)
+  private val qNormalisedSpecies = CompoundQuerys.CompoundsStudies.map(_._2.normalisedSpecies)
 
-  val listQs = List(
+  private val listQs = List(
     ("NormalisedAdminRoute", qNormalisedAdminRoute),
     ("NormalisedSex", qNormalisedSex),
     ("NormalisedSpecies", qNormalisedSpecies))
 
-  val listQsFindings = List(
+  private val listQsFindings = List(
     ("OrgansNormalied", FindingsAll.map(_.organNormalised)),
     ("Findings_Types", FindingsAll.map(_.source)),
     ("ClinicalChemicalFinding", FindingsAll.filter(_.source inSet Set("ClinicalChemicalFinding")).map(_.observationNormalised)),
@@ -45,14 +45,22 @@ object Observations_filtering_values {
     ("HistopathologicalFinding", FindingsAll.filter(_.source inSet Set("HistopathologicalFinding")).map(_.observationNormalised)),
     ("ClinicalHaematologicalFinding", FindingsAll.filter(_.source inSet Set("ClinicalHaematologicalFinding")).map(_.observationNormalised)),
     ("OrganWeights", FindingsAll.filter(_.source inSet Set("OrganWeights")).map(_.observationNormalised)))
+  val listQs_all = listQs ++ listQsFindings
 
-  def export_filtering_values(path:String="../data/filtering_values/") = {
-    val ldts = (listQs ++ listQsFindings).map(t => (t._1, models.dataframe.DataFrame(Querys_etox_reports.con, t._2)))
-    ldts.map(d => (d._2.toText(path+"/" + d._1)))
+  def export_filtering_values_all(path: String = "../data/filtering_values/") = {
+    val ldts = listQs_all.map(t => (t._1, models.dataframe.DataFrame(Querys_etox_reports.con, t._2)))
+    ldts.map(d => (d._2.toText(path + "/" + d._1 + ".tsv")))
+  }
+
+  def export_filtering_values(field: String, filename: String) = {    
+    val lq = listQs_all.toMap
+    val q = lq(field)
+    val df = models.dataframe.DataFrame(Querys_etox_reports.con, q)
+    df.toText(filename)
   }
 
   val filteringValues = {
-    val r = (for ((name, query) <- (listQs ++ listQsFindings)) yield ({
+    val r = (for ((name, query) <- listQs_all) yield ({
       val df = models.dataframe.DataFrame(Querys_etox_reports.con, query)
       val field = df.getFields()(0)
       val s = df.projectField(field)
